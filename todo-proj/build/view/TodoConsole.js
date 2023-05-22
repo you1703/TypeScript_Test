@@ -30,27 +30,27 @@ const inquirer = __importStar(require("inquirer"));
 const TodoCollection_1 = __importDefault(require("../service/TodoCollection"));
 const TodoItem_1 = __importDefault(require("../model/TodoItem"));
 const data_1 = require("../data");
+const Commands_1 = require("../model/Commands");
 class TodoConsole {
     constructor() {
         const sampleTodo = data_1.data.map((item) => new TodoItem_1.default(item.id, item.task, item.complete));
         this.todoCollection = new TodoCollection_1.default('My Todo List', sampleTodo);
     }
     displayTodoList() {
-        console.log(`===================${this.todoCollection.userName}======================` +
+        console.log(`======${this.todoCollection.userName}======` +
             `(${this.todoCollection.getItemCounts().incomplete} item todo)`);
         this.todoCollection.getTodoItems(true).forEach((item) => item.printDetails());
     }
     promptUser() {
         console.clear();
         this.displayTodoList();
-        let prompt = inquirer.createPromptModule();
-        prompt({
+        inquirer.prompt({
             type: 'list',
             name: 'command',
-            message: 'Choose Option',
-            choices: Object.values(Commands),
+            message: 'Choose option',
+            choices: Object.values(Commands_1.Commands),
         }).then((answers) => {
-            if (answers['command'] !== Commands.Quit) {
+            if (answers['command'] !== Commands_1.Commands.Quit) {
                 this.promptUser();
             }
         });

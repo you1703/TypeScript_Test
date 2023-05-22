@@ -1,3 +1,3 @@
-enum Commands {
+export enum Commands {
     Quit = 'Quit',
 }
