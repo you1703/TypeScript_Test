@@ -33,26 +33,75 @@ const data_1 = require("../data");
 const Commands_1 = require("../model/Commands");
 class TodoConsole {
     constructor() {
+        this.showCompleted = true;
         const sampleTodo = data_1.data.map((item) => new TodoItem_1.default(item.id, item.task, item.complete));
         this.todoCollection = new TodoCollection_1.default('My Todo List', sampleTodo);
     }
     displayTodoList() {
         console.log(`======${this.todoCollection.userName}======` +
             `(${this.todoCollection.getItemCounts().incomplete} item todo)`);
-        this.todoCollection.getTodoItems(true).forEach((item) => item.printDetails());
+        this.todoCollection.getTodoItems(this.showCompleted).forEach((item) => item.printDetails());
     }
     promptUser() {
         console.clear();
         this.displayTodoList();
         inquirer.prompt({
             type: 'list',
-            name: 'command',
+            name: 'commands',
             message: 'Choose option',
             choices: Object.values(Commands_1.Commands),
         }).then((answers) => {
-            if (answers['command'] !== Commands_1.Commands.Quit) {
-                this.promptUser();
+            switch (answers["commands"]) {
+                case Commands_1.Commands.Toggle:
+                    this.showCompleted = !this.showCompleted;
+                    this.promptUser();
+                    break;
+                case Commands_1.Commands.Add:
+                    this.promptAdd();
+                    break;
+                case Commands_1.Commands.Purge:
+                    this.todoCollection.removeComplete();
+                    this.promptUser();
+                    break;
+                case Commands_1.Commands.Complete:
+                    if (this.todoCollection.getItemCounts().incomplete > 0) {
+                        this.promptcomplete();
+                    }
+                    else {
+                        this.promptUser();
+                    }
+                    break;
             }
+        });
+    }
+    promptAdd() {
+        console.clear;
+        inquirer.prompt({
+            type: 'input',
+            name: 'add',
+            message: 'Enter Task'
+        }).then((answers) => {
+            if (answers["add"] !== "") {
+                this.todoCollection.addTodo(answers['add']);
+            }
+            this.promptUser();
+        });
+    }
+    promptcomplete() {
+        console.clear;
+        inquirer.prompt({
+            type: 'checkbox',
+            name: 'complete',
+            message: 'Mark Tasks Complete',
+            choices: this.todoCollection.getTodoItems(this.showCompleted).map((item) => ({
+                name: item.task,
+                value: item.id,
+                checked: item.complete
+            }))
+        }).then((answers) => {
+            let completedTasks = answers["complete"];
+            this.todoCollection.getTodoItems(true).forEach((item) => this.todoCollection.markComplete(item.id, completedTasks.find((id) => id == item.id) != undefined));
+            this.promptUser();
         });
     }
 }
